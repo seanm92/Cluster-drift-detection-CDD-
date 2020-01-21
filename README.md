@@ -12,7 +12,7 @@ alpha:the significant level for the statistics test to detrmain whether an obser
 The default value is 0.05.
 
 ## Code example with python:
-```
+``` python
 import CDD
 cdd = CDD(max_k = 10)
 cdd.fit(X_train)
