@@ -1,5 +1,6 @@
 # Cluster-drift-detection-CDD-
-CDD is a streaming novelty detection algorithm
+
+CDD is a streaming novelty detection algorithm.
 The CDD algorithm returns for each test example whether it is normal (produced from the training set distrbution, or novel),
 and the probabilty that the example is anomaly.
 Parameters:
@@ -10,7 +11,7 @@ The default value is 0.1.
 alpha:the significant level for the statistics test to detrmain whether an observation statistically fit a cluster.
 The default value is 0.05.
 
-Usage example:
+Directly from python:
 import CDD
 cdd = CDD(max_k = 10)
 cdd.fit(X_train)
