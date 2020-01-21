@@ -63,7 +63,7 @@ class CDD:
                     m = temp_data.shape[0]
                     lst[k].extend([mean,cov,m])
                 return lst
-            return get_clusters_data(X_train,K)
+            self.Clusters_data = get_clusters_data(X_train,K)
         if self.method == 'gmm':
             def choose_K(data,max_k = self.max_k,random = self.random):
                 scores = np.zeros(self.max_k-1)
