@@ -11,7 +11,7 @@ The default value is 0.1.
 alpha:the significant level for the statistics test to detrmain whether an observation statistically fit a cluster.
 The default value is 0.05.
 
-##Code example with python:
+## Code example with python:
 ```
 import CDD
 cdd = CDD(max_k = 10)
