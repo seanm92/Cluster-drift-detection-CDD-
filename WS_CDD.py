@@ -48,8 +48,8 @@ for r in tqdm(range(num_of_experiments)):
     cdd = CDD(random = r)
     cdd.fit(X_train)
     y_pred = cdd.predict(X_test)
-    y_pred_proba = cdd.predict_proba(X_test)
-    tnr,dr =  evaluate.evaluate_binary(y_pred,y_test)
+    y_pred_proba = cdd.predict_proba(X_test,alpha = 0.01)
+    tnr,dr =  evaluate.evaluate_binary(y_pred,y_test,alpha =0.01)
     auc = evaluate.AUC(y_pred_proba,y_test)
     tnrs.append(tnr)
     drs.append(dr)
@@ -171,144 +171,6 @@ auc_lof = evaluate.AUC(original_paper_score,y_test)
 tnr_lof,dr_lof = evaluate.evaluate_binary(lof_pred,y_test)
 
 
-def prop_test(p1,p2,n):
-    p = np.mean([p1,p2]) 
-    return (p1-p2)/np.sqrt(2*p*(1-p)/n) > 1.645
-
-
-from sklearn.metrics import silhouette_score
-from itertools import repeat
-from sklearn.mixture import GaussianMixture
-
-
-max_k = 10
-scores = np.zeros(max_k-1)
-for k in range(2,max_k+1):
-    gmm = GaussianMixture(n_components =k, random_state=0).fit(X_train)
-    preds = gmm.predict(X_train)
-    score = silhouette_score (X_train, preds, metric='euclidean')
-    scores[k-2] = score
-
-def get_clusters_data(data,K,random = 0):
-    #this function estimates for each cluster its center,covarince matrix and number of exeampls
-    #assume data is scaled
-    gmm = GaussianMixture(n_components =K, random_state = random)
-    labels = gmm.fit_predict(data)
-    lst = [[] for i in repeat(None, K)]
-    for k in range(K):
-        temp_data = data[labels==k,:]
-        mean = np.mean(temp_data,axis = 0)
-        cov = np.cov(np.transpose(temp_data))
-        m = temp_data.shape[0]
-        lst[k].extend([mean,cov,m])
-    return lst
-
-tnr_by_k = np.zeros(max_k-1)
-dr_by_k = np.zeros(max_k-1)
-auc_by_k = np.zeros(max_k-1)
-for k in range(2,max_k+1):
-    aucs = []
-    drs = []
-    tnrs = []
-    for r in tqdm(range(num_of_experiments)):
-        cdd.Clusters_data = get_clusters_data(X_train,k,r)
-        y_pred = cdd.predict(X_test)
-        y_pred_proba = cdd.predict_proba(X_test)
-        tnr,dr =  evaluate.evaluate_binary(y_pred,y_test)
-        auc = evaluate.AUC(y_pred_proba,y_test)
-        tnrs.append(tnr)
-        drs.append(dr)
-        aucs.append(auc)
-
-    tnr_by_k[k-2] = np.mean(tnrs)
-    dr_by_k[k-2] = np.mean(drs)    
-    auc_by_k[k-2] = np.mean(aucs) 
-
-
-
-updates = [0.01,0.05,0.1,0.2,0.5,0.8,0.9,1]
-tnr_by_update = np.zeros(len(updates))
-dr_by_update = np.zeros(len(updates))
-auc_by_update = np.zeros(len(updates))
-
-for ind,update in enumerate(updates):
-    aucs = []
-    drs = []
-    tnrs = []
-    for r in tqdm(range(num_of_experiments)):
-        cdd = CDD(random = r)
-        cdd.fit(X_train)
-        y_pred = cdd.predict(X_test,update = update)
-        cdd = CDD(random = r)
-        y_pred_proba = cdd.predict_proba(X_test,update = update)
-        tnr,dr =  evaluate.evaluate_binary(y_pred,y_test)
-        auc = evaluate.AUC(y_pred_proba,y_test)
-        tnrs.append(tnr)
-        drs.append(dr)
-        aucs.append(auc)
-    tnr_by_update[ind] = np.mean(tnrs)
-    dr_by_update[ind] = np.mean(drs)    
-    auc_by_update[ind] = np.mean(aucs)     
-
-alphas = [0.01,0.05,0.1,0.2,0.5,0.8]
-tnr_by_alpha = np.zeros(len(alphas))
-dr_by_alpha = np.zeros(len(alphas))
-auc_by_alpha = np.zeros(len(alphas))
-
-for ind,alpha in enumerate(alphas):
-    aucs = []
-    drs = []
-    tnrs = []
-    for r in tqdm(range(num_of_experiments)):
-        cdd = CDD(random = r)
-        cdd.fit(X_train)
-        y_pred = cdd.predict(X_test,alpha = alpha)
-        cdd = CDD(random = r)
-        cdd.fit(X_train)
-        y_pred_proba = cdd.predict_proba(X_test,alpha = alpha)
-        tnr,dr =  evaluate.evaluate_binary(y_pred,y_test)
-        auc = evaluate.AUC(y_pred_proba,y_test)
-        tnrs.append(tnr)
-        drs.append(dr)
-        aucs.append(auc)
-    tnr_by_alpha[ind] = np.mean(tnrs)
-    dr_by_alpha[ind] = np.mean(drs)    
-    auc_by_alpha[ind] = np.mean(aucs)
-
-tnr_by_alpha_hot = np.zeros(len(alphas))
-dr_by_alpha_hot = np.zeros(len(alphas))
-auc_by_alpha_hot = np.zeros(len(alphas))
-
-for ind,alpha in enumerate(alphas):    
-    y_pred_proba_hot = Hoteliing_SPC_proba(X_train,X_test,alpha = alpha)
-    y_pred_hot = Hoteliing_SPC(X_train,X_test,alpha = alpha)
-    y_pred_hot+=1
-    y_pred_hot[y_pred_hot==2] = -1
-    auc_hot = evaluate.AUC(y_pred_proba_hot,y_test)
-    tnr_hot,dr_hot = evaluate.evaluate_binary(y_pred_hot,y_test)
-    tnr_by_alpha_hot[ind] = tnr_hot
-    dr_by_alpha_hot[ind] = dr_hot
-    auc_by_alpha_hot[ind] = auc_hot
-
-import matplotlib.pyplot as plt
-plt.plot(alphas,tnr_by_alpha_hot)
-plt.plot(alphas,dr_by_alpha_hot)
-plt.plot(alphas,auc_by_alpha_hot)
-plt.legend(['TNR','DR','AUC'],loc = 'lower left')
-plt.xlabel('alpha',fontsize = 10)
-plt.ylabel('Preformance ',fontsize = 10)
-plt.title('Hotelling preformance')
-
-plt.plot(alphas,tnr_by_alpha)
-plt.plot(alphas,dr_by_alpha)
-plt.plot(alphas,auc_by_alpha)
-plt.legend(['TNR','DR','AUC'],loc = 'lower left')
-plt.xlabel('alpha',fontsize = 10)
-plt.ylabel('Preformance ',fontsize = 10)
-plt.title('CDD preformance')
-
-
-auc_cdd = auc_by_alpha[0]
 
 
 
