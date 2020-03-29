@@ -48,6 +48,8 @@ for r in tqdm(range(num_of_experiments)):
     cdd = CDD(random = r)
     cdd.fit(X_train)
     y_pred = cdd.predict(X_test)
+    cdd = CDD(random = r)
+    cdd.fit(X_train)
     y_pred_proba = cdd.predict_proba(X_test,alpha = 0.01)
     tnr,dr =  evaluate.evaluate_binary(y_pred,y_test,alpha =0.01)
     auc = evaluate.AUC(y_pred_proba,y_test)
