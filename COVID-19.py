@@ -116,7 +116,7 @@ def update_clusters_data(random = 0):
 cdd = update_clusters_data()
 y_pred_proba = cdd.predict_proba(X_test,alpha = 0.8)
 auc_cdd = evaluate.AUC(y_pred_proba,y_test1)
-cdd = update_clusters_data(random = 0)
+cdd = update_clusters_data()
 y_pred = cdd.predict(X_test,alpha = 0.8)
 tnr_cdd,dr_cdd = evaluate.evaluate_binary(y_pred, y_test1)
 
